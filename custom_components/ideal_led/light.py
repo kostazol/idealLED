@@ -25,21 +25,11 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({vol.Required(CONF_MAC): cv.string})
 
 async def async_setup_entry(hass, config_entry, async_add_devices):
     instance = hass.data[DOMAIN][config_entry.entry_id]
-    # Don't fail setup if initial update fails - this can happen at HA startup
-    # when Bluetooth proxies aren't fully ready yet. The entity will always
-    # report as available so users can attempt to control it, and the actual
-    # BLE connection will be made on-demand when a command is issued.
-    try:
-        await instance.update()
-    except Exception as err:
-        LOGGER.warning(
-            "Initial connection to %s failed (%s), will retry on first command",
-            config_entry.data.get("name", "unknown"),
-            err
-        )
+    await instance.update()
     async_add_devices(
         [IDEALLEDLight(instance, config_entry.data["name"], config_entry.entry_id)]
     )
+    #config_entry.async_on_unload(await instance.stop())
 
 
 class IDEALLEDLight(LightEntity):
@@ -57,11 +47,7 @@ class IDEALLEDLight(LightEntity):
         
     @property
     def available(self):
-        # Always report as available so users can attempt to control the light.
-        # The actual connection happens on command, which will succeed once
-        # Bluetooth is ready. This avoids the chicken-and-egg problem where
-        # an "unavailable" entity can't be controlled to trigger a connection.
-        return True
+        return self._instance.is_on != None
 
     @property
     def brightness(self):
