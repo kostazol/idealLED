@@ -3,6 +3,7 @@ from enum import Enum
 DOMAIN = "ideal_led"
 CONF_RESET = "reset"
 CONF_DELAY = "delay"
+DEFAULT_DELAY = 0.5  # seconds between BLE commands
 
 COMMAND_BYTES = {
     "TYPE1" : {
